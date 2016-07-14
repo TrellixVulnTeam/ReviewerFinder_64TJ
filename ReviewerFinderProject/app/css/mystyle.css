@@ -1,0 +1,103 @@
+
+
+#spaceAboveQuery{
+	margin-top: 20px;
+}
+#processing_img_div{
+	position:fixed;
+	height:100%;
+	width:100%;
+	background:#BFBEBE;
+	opacity:0.6;
+	text-align:center;
+}
+#processing_img_div img{
+	position:fixed;
+	top:50%;
+	left:45%;
+}
+
+.row {
+    margin-left: 10px;
+    max-width: 72.8571em;
+    width: 100%;
+}
+#headerline{
+	display:block;
+	background: #f2f2f2;
+    width: 100%;
+    height: auto;
+}
+.header-logo {
+    padding-top: 32px;
+    padding-bottom: 28px;
+    background: url(../logo/logo-springernature.png) no-repeat 0 center;
+    background-size: contain;
+    width: 209px;
+    height: auto;
+}
+
+
+table{
+	border:1px solid black;
+	margin-bottom: 10px;
+}
+tr:nth-child(even){
+	background: #f2f2f2
+}
+th, td{
+	text-align: left;
+	vertical-align: top;
+	padding: 15px;
+}
+th {
+    background-color: lightgray;
+    color: black;
+}
+caption {
+    caption-side: bottom;
+}
+
+.query{
+	diplay: block;
+	background-color : #f2f2f2;
+	width:50%;
+	margin: auto;
+	padding-bottom:10px;
+}
+.query .inner{
+	margin:auto;
+}
+#querytitle{
+	display: block;
+	font-weight: bold;
+    padding-top: 10px;
+    padding-bottom: 10px;
+	margin:auto;
+}
+input{
+	display: block;
+	font-size: 16px;
+	padding: 5px 5px;
+	width: 90%;
+	margin:auto;
+	margin-bottom: 10px;
+}
+button {
+  display: block;
+  margin:auto;
+  padding: 10px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: grey;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+}
+button:hover {
+	background-color: black
+}

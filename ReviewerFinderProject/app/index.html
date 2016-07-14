@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+<title>Reviewer Finder Tool</title>
+<link rel="shortcut icon" type="image/x-icon" href="./logo/crlogo.ico" />
+<script src="node_modules/angular/angular.min.js"></script>
+<script src="app.js"></script>
+<script src="controller.js"></script>
+<script src="api-service.js"></script>
+<link rel="stylesheet" type="text/css" href="./css/base.css"/>
+<link rel="stylesheet" type="text/css" href="./css/login.css"/>
+<link rel="stylesheet" type="text/css" href="./css/mystyle.css"/>
+<style type="text/css"></style>
+<title>Page Title</title>
+</head>
+
+<body ng-controller="controller" class=" login">
+	<div id="headerline">
+		<div id="header" style="float:right" ng-show=isMain ng-click="loginShow()"><a href="#">Logout</a></div>
+		<div class="row">
+			<div class="header-logo"></div>
+		</div>
+	</div>
+
+<!-- Container -->
+<div id="container" ng-show=isLogin>
+
+
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+					<h1 id="site-name"><a href="#">Reviewer Finder Login</a>{{err_message}}</h1>
+        </div>
+    </div>
+    <!-- END Header -->
+    <!-- Content -->
+    <div id="content" class="colM">
+			<p class="errornote" ng-show=isErr_login>
+			    Please enter the correct username and password.
+			</p>
+			<form name="userForm" ng-submit="login()">
+			<div id="content-main">
+					<div class="form-row">
+						<label class="required" for="id_username">Username:</label> <input id="id_username" maxlength="254" ng-model="user.username" type="text">
+					</div>
+					<div class="form-row">
+						<label class="required" for="id_password">Password:</label> <input id="id_password" name="password" ng-model="user.password" type="password" ng-keyup="$event.keyCode != 13 && hideError()">
+					</div>
+  <div class="submit-row">
+    <label>&nbsp;</label><input type="submit" value="Login"/>
+  </div>
+</form>
+</div>
+<br class="clear">
+    </div>
+    <!-- END Content -->
+
+    <div id="footer"></div>
+</div>
+<!-- END Container -->
+
+<div id="processing_img_div" ng-show=isProgress>
+	<img alt="Processing Image" src="./logo/processing.gif" />
+</div>
+<div id="spaceAboveQuery"></div>
+<div ng-show=isMain>
+<div class="query">
+	<div class="query inner">
+		<div id="querytitle">Reviewer Finder Tool</div>
+		<input type="text" placeholder="Keywords (search in abs-title-key)" ng-model="query" ng-keyup="$event.keyCode == 13 && submit()"/>
+		<button type="submit" ng-click="submit()">Find on Scopus</button>
+	</div>
+</div>
+    <div>{{error}}</div><div ng-show=isTime><b>Processed time:</b> {{output['processTime']}}</div>
+<br/>
+<form id="formoutput" ng-show=isData>
+<div style="overflow-x:auto;">
+<table ng-repeat="val in output['searchResult']">
+<col><col><col><col>
+<tr style="background: #f2f2f2">
+	<td><b>Author Name:</b> <a href="{{val['Author Scopus Link']}}">{{val['Author Name']}}</a></td>
+	<td><b>Article Language:</b> {{val['Language']}}</td>
+	<td><b>Total Document in Complete tenure:</b> {{val['Total Document in Complete tenure']}}</td>
+	<td><b>Publication count in last five year:</b> {{val['Publication count in last five year']}}</td>
+</tr>
+<tr>
+	<td colspan="3"><b>Title:</b> <a href="{{val['header link']}}">{{val['Title']}}</a></td>
+	<td><b>Publication count in last ten year:</b> {{val['Publication count in last ten year']}}</td>
+</tr>
+<tr>
+	<td colspan="4"><b>Abstract:</b> {{val['Abstract']}}</td>
+</tr>
+</table>
+</div>
+</form>
+</div>
+
+
+</body>
+
+
+</html>
