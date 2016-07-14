@@ -1,4 +1,4 @@
-# ReviewerFinder
+# ReviewerFinder (v1.0)
 
 This service find reviewers from scopus API and return JSON data.
 
