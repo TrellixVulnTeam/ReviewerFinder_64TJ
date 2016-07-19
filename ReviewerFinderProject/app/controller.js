@@ -39,7 +39,6 @@ angular.module('app')
   $scope.submit = function(){
 			$scope.isData = false;
 			$scope.isProgress = false;
-			$scope.isTime = false;
 			$scope.error = "";
             if($scope.query == undefined){
                 $scope.error = "Pease provide query.";
@@ -52,7 +51,6 @@ angular.module('app')
 									$scope.isData = true;
 									if($scope.output['processTime']){
 											console.log("process time");
-											$scope.isTime = true;
 									}
 									if($scope.output['Error']){
 										console.log("Error output");

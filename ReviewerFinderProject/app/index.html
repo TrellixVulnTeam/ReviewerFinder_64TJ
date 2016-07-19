@@ -71,24 +71,29 @@
 		<button type="submit" ng-click="submit()">Find on Scopus</button>
 	</div>
 </div>
-    <div>{{error}}</div><div ng-show=isTime><b>Processed time:</b> {{output['processTime']}}</div>
-<br/>
 <form id="formoutput" ng-show=isData>
+  <div>{{error}}</div><div><b>Processed time:</b> {{output['processTime']}}</div>
+  <div><b>Search Items:</b> {{output['searchItem']}}</div>
+<br/>
 <div style="overflow-x:auto;">
 <table ng-repeat="val in output['searchResult']">
-<col><col><col><col>
+<col><col><col><col><col>
 <tr style="background: #f2f2f2">
 	<td><b>Author Name:</b> <a href="{{val['Author Scopus Link']}}">{{val['Author Name']}}</a></td>
 	<td><b>Article Language:</b> {{val['Language']}}</td>
+  <td><b>Affiliation : </b> <a href="{{val['Org URL']}}">{{val['Affiliation']}}</a></td>
 	<td><b>Total Document in Complete tenure:</b> {{val['Total Document in Complete tenure']}}</td>
 	<td><b>Publication count in last five year:</b> {{val['Publication count in last five year']}}</td>
 </tr>
 <tr>
-	<td colspan="3"><b>Title:</b> <a href="{{val['header link']}}">{{val['Title']}}</a></td>
+	<td colspan="4"><b>Title:</b> <a href="{{val['header link']}}">{{val['Title']}}</a></td>
 	<td><b>Publication count in last ten year:</b> {{val['Publication count in last ten year']}}</td>
 </tr>
 <tr>
-	<td colspan="4"><b>Abstract:</b> {{val['Abstract']}}</td>
+  <td colspan="5"><b>Subject Area : </b> <span class="sa" ng-repeat="sa in val['Subject Area']">{{sa}}</span></td>
+</tr>
+<tr>
+	<td colspan="5"><b>Abstract:</b> {{val['Abstract']}}</td>
 </tr>
 </table>
 </div>

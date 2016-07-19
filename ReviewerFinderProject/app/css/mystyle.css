@@ -1,5 +1,9 @@
-
-
+.sa:after{
+	content: ", ";
+}
+.sa:last-child:after{
+	content: "";
+}
 #spaceAboveQuery{
 	margin-top: 20px;
 }
