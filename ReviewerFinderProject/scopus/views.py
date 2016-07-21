@@ -44,6 +44,9 @@ class ScopusView(APIView):
 		sys.stdout.flush()
 		self.startTime = time()
 		self.searchResult = {'searchResult': []}
+		logging.debug("-----------------------------------------------------------------------------")
+		logging.debug("                      Start Time : {}".format(date.today()))
+		logging.debug("-----------------------------------------------------------------------------")
 		isNext = True
 
 		for eachArt in article_list:
@@ -61,11 +64,11 @@ class ScopusView(APIView):
 				break
 			# print("len : %d" % len(self.searchResult['searchResult']))
 
-		time_taken = round(time() - self.startTime, 2);
+		time_taken = round(time() - self.startTime, 2)
 		hours, rest = divmod(time_taken, 3600)
 
 		if len(self.searchResult['searchResult']) > 0:
-			self.searchResult['processTime'] = '%d minutes, %d second' % divmod(rest, 60);
+			self.searchResult['processTime'] = '%d minutes, %d second' % divmod(rest, 60)
 			self.searchResult['searchItem'] = len(self.searchResult['searchResult'])
 			return Response(self.searchResult)
 		else:
@@ -76,7 +79,7 @@ class ScopusView(APIView):
 
 	def call_process(self, abs_link, eachArt):
 		self.parseURL(isAbs=True)
-		logging.info("(Second Search) Abstract Url %s?APIKey=%s&HTTPAccept=%s" % (abs_link, self.headers['X-ELS-APIKey'],
+		logging.debug("(Second Search) Abstract Url %s?APIKey=%s&HTTPAccept=%s" % (abs_link, self.headers['X-ELS-APIKey'],
 																		   self.headers['accept']))
 		eachArticleInfo = self.req(abs_link, err_message="Abstract Url Exception: [%s] !\n" % (abs_link))
 
@@ -99,10 +102,10 @@ class ScopusView(APIView):
 
 		for eachAUDetails in auDetailList:
 			scopus_link = None
-			documentInFiveYear = documentInTenYear = 0;
+			documentInFiveYear = documentInTenYear = 0
 			expertiseArea = []
 
-			logging.info("(Third Search) Authors Details Url : %s?APIKey=%s&HTTPAccept=%s" % (eachAUDetails[
+			logging.debug("(Third Search) Authors Details Url : %s?APIKey=%s&HTTPAccept=%s" % (eachAUDetails[
 																								'author-url'],
 																				   self.headers['X-ELS-APIKey'], self.headers['accept']))
 
@@ -119,22 +122,22 @@ class ScopusView(APIView):
 			try:
 				afName = eachAUDetailsData['author-profile']['affiliation-current']['affiliation']['ip-doc']['afdispname']
 			except:
-				logging.info('Affiliation not found')
+				logging.debug('Affiliation not found')
 
 			instLink = 'Not found'
 			try:
 				instLink = eachAUDetailsData['author-profile']['affiliation-current']['affiliation']['ip-doc']['org-URL']
 			except:
-				logging.info('Organization link not found')
+				logging.debug('Organization link not found')
 
-
-
+			au_data_for_coauthor = None
 			for lnk in eachAUDetailsData['coredata']['link']:
 				if re.search(r"www.scopus.com/authid/", lnk['@href']):
 					scopus_link = lnk['@href']
 					re.sub(r" ", "", scopus_link)
 				if re.search(r"http://api.elsevier.com/content/author/author_id/", lnk['@href']):
-					documentInFiveYear, documentInTenYear = self.findDocumentInLastFiveYears(lnk['@href'])
+					au_data_for_coauthor = self.getAuData(lnk['@href'])
+					documentInFiveYear, documentInTenYear = self.findDocumentInLastFiveYears(au_data_for_coauthor)
 
 			if documentInFiveYear > 50 or documentInFiveYear < 5 or documentInTenYear < 10:
 				continue
@@ -154,6 +157,8 @@ class ScopusView(APIView):
 				document_abstract = eachArticleInfo.get('abstracts-retrieval-response').get('item').get('bibrecord').get(
 				'head').get('abstracts')
 
+			coAuthors = self.findCoAuthors(au_data_for_coauthor)
+
 			searchDic = {'Author Name' : eachAUDetailsData['author-profile']['preferred-name']['given-name'] + " " +
 											eachAUDetailsData['author-profile']['preferred-name']['surname'],
 						 'Total Document in Complete tenure' : eachAUDetailsData['coredata']['document-count'],
@@ -167,31 +172,44 @@ class ScopusView(APIView):
 						 'Subject Area' : expertiseArea,
 						 'Affiliation' : afName,
 						 'Org URL' : instLink,
+						 'Co-authors' : coAuthors,
 						 }
 			# print(searchDic)
 			self.searchResult['searchResult'].append(searchDic)
 			if len(self.searchResult['searchResult']) > self.NO_OF_SEARCH_RESULT: return False
 		if len(self.searchResult['searchResult']) > self.NO_OF_SEARCH_RESULT: return False
-	def findCoAuthors(self, auID):
-		url = 'https://www.scopus.com/author/coauthordetails.uri?authorId=23767447900'
-		ret = requests.get(url, headers = self.headers, proxies = settings.PROXY)
-		print(ret.content.decode("utf-8"))
-		exit(0)
-	def findDocumentInLastFiveYears(self, link):
+
+	def getAuData(self, auID):
 		self.parseURL(isAbs=True)
-		doc_count = 0
-		doc_count_ten = 0
-		auID = link
 		auID = re.sub(r".*/(\d+)$", r"\1", auID)
 
-		# coAuthors = self.findCoAuthors(auID)
 		# print("auID %s" % auID)
 		url = 'http://api.elsevier.com/content/search/scopus?query=AU-ID(' + auID + ')'
 
-		logging.info("(Fourth Search) Document In Last Five Year Url : %s&APIKey=%s&HTTPAccept=%s" % (url, self.headers[
-			'X-ELS-APIKey'], self.headers['accept']))
+		logging.debug(
+			"(Fourth Search) Document In Last Five Year Url : %s&APIKey=%s&HTTPAccept=%s" % (url, self.headers[
+				'X-ELS-APIKey'], self.headers['accept']))
 
 		au_data = self.req(url, err_message="Link [%s] Request error (Author Page)!\n" % (url))
+		return au_data
+
+	def findCoAuthors(self, au_data):
+		allCoAuth = []
+		try:
+			for each_entry in au_data['search-results']['entry']:
+				abs_link = each_entry.get('prism:url')
+				self.parseURL(isAbs=True)
+				abs_link = abs_link + '?field=authors'
+				authors = self.req(abs_link, err_message="Abstract Url Exception: [%s] !\n" % (abs_link))
+				for eachAuthor in authors.get('abstracts-retrieval-response').get('authors').get('author'):
+					allCoAuth.append('{0} {1}'.format(eachAuthor.get('ce:given-name'), eachAuthor.get('ce:surname')))
+		except Exception as ex:
+			print("Find co-authors error.")
+		return ', '.join(set(allCoAuth))
+
+	def findDocumentInLastFiveYears(self, au_data):
+		doc_count = 0
+		doc_count_ten = 0
 
 		try:
 			# au_info_request = requests.get(url, headers=self.headers)
@@ -202,6 +220,8 @@ class ScopusView(APIView):
 			ten_year = date.today().year - 9
 			# print("five_year %s" % five_year)
 			for each_entry in au_data['search-results']['entry']:
+				if each_entry.get('prism:coverDisplayDate') == None:
+					continue
 				year = each_entry['prism:coverDisplayDate']
 				# print("before conversion year %s " %year)
 				year = re.sub(r"^(?:(?!\d{4}).)*(\d{4}).*$", r"\1", year)
@@ -221,7 +241,7 @@ class ScopusView(APIView):
 		# First Search : find no of search item
 		page = self.req(url, err_message="Error : Request error [%s]! \n" % url)
 		try:
-			logging.info("(First Search) ByTitleAbsKey Url : %s&APIKey=%s&view:COMPLETE&HTTPAccept=%s&count=10" % (url,
+			logging.debug("(First Search) ByTitleAbsKey Url : %s&APIKey=%s&view:COMPLETE&HTTPAccept=%s&count=10" % (url,
 																											self.headers['X-ELS-APIKey'], self.headers['HTTPAccept']))
 			# page_request = requests.get(url, headers = self.headers)
 			# page_request = requests.get('http://api.elsevier.com/content/search/scopus?query=title-abs-key(micro)&APIKey=40ab7ae0b9e65f067cfe446e01585cc4&HTTPAccept=application/json&count=1')
